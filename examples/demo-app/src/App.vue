@@ -1,98 +1,109 @@
 <template>
-  <View :style="containerStyle">
+  <div class="container">
     <!-- Header -->
-    <View :style="headerStyle">
-      <Text :style="titleStyle">Spruce Demo 🚀</Text>
-      <Text :style="subtitleStyle">Multi-threaded Vue 3 + Rust + SpruceVM</Text>
-    </View>
+    <header class="header">
+      <h1 class="title">Spruce Demo 🌲</h1>
+      <p class="subtitle">Vue 3.6 Vapor Mode Architecture Preview</p>
+    </header>
 
     <!-- Counter Section -->
-    <View :style="sectionStyle">
-      <Text :style="sectionTitleStyle">Reactive Counter</Text>
-      <Text :style="counterTextStyle">Count: {{ count }}</Text>
+    <section class="section">
+      <h2 class="section-title">Vue 3.6 Reactivity</h2>
+      <p class="counter-display">Count: {{ count }}</p>
       
-      <View :style="buttonRowStyle">
-        <Button :style="buttonStyle" @press="decrement">
-          <Text :style="buttonTextStyle">-</Text>
-        </Button>
-        <Button :style="buttonStyle" @press="increment">
-          <Text :style="buttonTextStyle">+</Text>
-        </Button>
-        <Button :style="resetButtonStyle" @press="reset">
-          <Text :style="buttonTextStyle">Reset</Text>
-        </Button>
-      </View>
-    </View>
+      <div class="button-row">
+        <button class="btn btn-primary" @click="decrement">-</button>
+        <button class="btn btn-primary" @click="increment">+</button>
+        <button class="btn btn-danger" @click="reset">Reset</button>
+      </div>
+    </section>
 
-    <!-- Performance Demo -->
-    <View :style="sectionStyle">
-      <Text :style="sectionTitleStyle">Performance Test</Text>
-      <Text :style="textStyle">Background thread tasks: {{ backgroundTasks }}</Text>
+    <!-- Architecture Demo -->
+    <section class="section">
+      <h2 class="section-title">Architecture Preview</h2>
+      <p class="text">Rendering with: {{ renderingMode }}</p>
+      <p class="text">Vue version: {{ vueVersion }}</p>
       
-      <Button :style="performanceButtonStyle" @press="runPerformanceTest">
-        <Text :style="buttonTextStyle">Run Performance Test</Text>
-      </Button>
-    </View>
+      <button class="btn btn-secondary" @click="toggleRenderMode">
+        Switch to {{ nextRenderMode }}
+      </button>
+    </section>
 
     <!-- Features List -->
-    <View :style="sectionStyle">
-      <Text :style="sectionTitleStyle">Framework Features</Text>
+    <section class="section">
+      <h2 class="section-title">Planned Architecture</h2>
       
-      <ScrollView :style="scrollStyle">
-        <View v-for="feature in features" :key="feature.id" :style="featureItemStyle">
-          <Text :style="featureIconStyle">{{ feature.icon }}</Text>
-          <Text :style="featureTextStyle">{{ feature.text }}</Text>
-        </View>
-      </ScrollView>
-    </View>
+      <div class="features-grid">
+        <div v-for="feature in features" :key="feature.id" class="feature-item">
+          <span class="feature-icon">{{ feature.icon }}</span>
+          <span class="feature-text">{{ feature.text }}</span>
+          <span class="feature-status">{{ feature.status }}</span>
+        </div>
+      </div>
+    </section>
 
     <!-- Input Demo -->
-    <View :style="sectionStyle">
-      <Text :style="sectionTitleStyle">Native Input</Text>
+    <section class="section">
+      <h2 class="section-title">Vue Input Example</h2>
       
-      <TextInput 
-        :style="inputStyle"
-        :value="inputText"
-        @change="handleInputChange"
-        placeholder="Type something..."
+      <input 
+        class="input"
+        v-model="inputText"
+        placeholder="Type something (Vue 3.6 reactive)..."
       />
       
-      <Text :style="textStyle">You typed: {{ inputText }}</Text>
-    </View>
+      <p class="text">You typed: <strong>{{ inputText }}</strong></p>
+      <p class="text">Input length: {{ inputText.length }} characters</p>
+    </section>
 
-    <!-- Native API Demo -->
-    <View :style="sectionStyle">
-      <Text :style="sectionTitleStyle">Native APIs</Text>
+    <!-- Performance Info -->
+    <section class="section">
+      <h2 class="section-title">Performance Targets</h2>
       
-      <Button :style="apiButtonStyle" @press="vibrate">
-        <Text :style="buttonTextStyle">📳 Vibrate</Text>
-      </Button>
-      
-      <Button :style="apiButtonStyle" @press="showAlert">
-        <Text :style="buttonTextStyle">🚨 Show Alert</Text>
-      </Button>
-    </View>
-  </View>
+      <div class="performance-grid">
+        <div class="perf-item">
+          <span class="perf-label">Current:</span>
+          <span class="perf-value">Vue 3.6 Beta</span>
+        </div>
+        <div class="perf-item">
+          <span class="perf-label">Target:</span>
+          <span class="perf-value">Pure Rust UI</span>
+        </div>
+        <div class="perf-item">
+          <span class="perf-label">Goal:</span>
+          <span class="perf-value">60+ FPS</span>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { spruceRuntime } from '../../runtime/vue-renderer'
+import { version } from 'vue'
 
 // Reactive state
 const count = ref(0)
 const inputText = ref('')
-const backgroundTasks = ref(0)
+const renderingMode = ref('Vue 3.6 DOM')
+
+// Vue version info
+const vueVersion = version
+
+// Computed properties
+const nextRenderMode = computed(() => 
+  renderingMode.value === 'Vue 3.6 DOM' ? 'Pure Rust UI (Planned)' : 'Vue 3.6 DOM'
+)
 
 const features = ref([
-  { id: 1, icon: '🦀', text: 'Rust-powered native rendering' },
-  { id: 2, icon: '⚡', text: 'SpruceVM ultra-fast JavaScript engine' },
-  { id: 3, icon: '🟢', text: 'Vue 3 composition API' },
-  { id: 4, icon: '🧵', text: 'Multi-threaded architecture' },
-  { id: 5, icon: '🔄', text: 'Zero-copy bridge communication' },
-  { id: 6, icon: '📱', text: 'True native performance' },
-  { id: 7, icon: '🎯', text: 'Direct native API access' },
-  { id: 8, icon: '🚀', text: 'Instant first-frame rendering' },
+  { id: 1, icon: '🦀', text: 'Pure Rust UI renderer', status: '🚧 Designing' },
+  { id: 2, icon: '⚡', text: 'SpruceVM JavaScript engine', status: '🚧 Prototyping' },
+  { id: 3, icon: '🟢', text: 'Vue 3.6 Vapor Mode', status: '✅ Ready' },
+  { id: 4, icon: '🧵', text: 'Multi-threaded architecture', status: '🚧 Planning' },
+  { id: 5, icon: '🔄', text: 'Zero-copy communication', status: '📋 Planned' },
+  { id: 6, icon: '📱', text: 'Native mobile performance', status: '🎯 Goal' },
+  { id: 7, icon: '🎯', text: 'Direct GPU rendering', status: '📋 Planned' },
+  { id: 8, icon: '🚀', text: 'Hot reload system', status: '🚧 Designing' },
 ])
 
 // Event handlers
@@ -101,194 +112,226 @@ function increment() {
 }
 
 function decrement() {
-  count.value--
+  count.value > 0 && count.value--
 }
 
 function reset() {
   count.value = 0
 }
 
-function handleInputChange(event: any) {
-  inputText.value = event.target.value
-}
-
-async function runPerformanceTest() {
-  console.log('Running performance test...')
-  
-  // Simulate background tasks
-  for (let i = 0; i < 10; i++) {
-    backgroundTasks.value++
+function toggleRenderMode() {
+  // This demonstrates the architecture concept
+  // In the future, this would switch between Vue DOM and Pure Rust UI
+  renderingMode.value = renderingMode.value === 'Vue 3.6 DOM' 
+    ? 'Pure Rust UI (Not yet implemented)' 
+    : 'Vue 3.6 DOM'
     
-    // Call native function for heavy computation
-    await spruceRuntime.callNativeFunction('compute.fibonacci', JSON.stringify([30]))
-    
-    // Small delay to show progress
-    await new Promise(resolve => setTimeout(resolve, 100))
-  }
-  
-  console.log('Performance test completed!')
-}
-
-async function vibrate() {
-  try {
-    await spruceRuntime.callNativeFunction('device.vibrate', JSON.stringify([500]))
-    console.log('Device vibrated!')
-  } catch (error) {
-    console.error('Vibration failed:', error)
-  }
-}
-
-async function showAlert() {
-  try {
-    await spruceRuntime.callNativeFunction('ui.showAlert', 
-      JSON.stringify(['Spruce', 'Hello from Vue + Rust UI!']))
-    console.log('Alert shown!')
-  } catch (error) {
-    console.error('Alert failed:', error)
-  }
+  console.log(`Switched to: ${renderingMode.value}`)
 }
 
 // Lifecycle
 onMounted(() => {
-  console.log('✅ Spruce Demo App mounted!')
+  console.log('✅ Spruce Architecture Preview mounted!')
+  console.log(`Running Vue ${vueVersion}`)
 })
 
-// Styles
-const containerStyle = computed(() => ({
-  flex: 1,
-  backgroundColor: '#f8fafc',
-  padding: 16,
-}))
-
-const headerStyle = {
-  alignItems: 'center',
-  padding: 20,
-  backgroundColor: 'white',
-  borderRadius: 12,
-  marginBottom: 16,
-  shadowOpacity: 0.1,
-  shadowRadius: 8,
-}
-
-const titleStyle = {
-  fontSize: 28,
-  fontWeight: 'bold',
-  color: '#1e293b',
-  textAlign: 'center',
-}
-
-const subtitleStyle = {
-  fontSize: 16,
-  color: '#64748b',
-  textAlign: 'center',
-  marginTop: 8,
-}
-
-const sectionStyle = {
-  backgroundColor: 'white',
-  padding: 16,
-  borderRadius: 12,
-  marginBottom: 16,
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-}
-
-const sectionTitleStyle = {
-  fontSize: 18,
-  fontWeight: 'bold',
-  color: '#374151',
-  marginBottom: 12,
-}
-
-const counterTextStyle = {
-  fontSize: 24,
-  fontWeight: 'bold',
-  color: '#059669',
-  textAlign: 'center',
-  marginBottom: 16,
-}
-
-const buttonRowStyle = {
-  flexDirection: 'row',
-  justifyContent: 'space-around',
-  alignItems: 'center',
-}
-
-const buttonStyle = {
-  backgroundColor: '#3b82f6',
-  padding: 12,
-  borderRadius: 8,
-  minWidth: 50,
-  alignItems: 'center',
-}
-
-const resetButtonStyle = {
-  backgroundColor: '#ef4444',
-  padding: 12,
-  borderRadius: 8,
-  minWidth: 80,
-  alignItems: 'center',
-}
-
-const performanceButtonStyle = {
-  backgroundColor: '#8b5cf6',
-  padding: 12,
-  borderRadius: 8,
-  marginTop: 8,
-  alignItems: 'center',
-}
-
-const apiButtonStyle = {
-  backgroundColor: '#f59e0b',
-  padding: 12,
-  borderRadius: 8,
-  marginBottom: 8,
-  alignItems: 'center',
-}
-
-const buttonTextStyle = {
-  color: 'white',
-  fontWeight: 'bold',
-  fontSize: 16,
-}
-
-const textStyle = {
-  fontSize: 14,
-  color: '#4b5563',
-  marginTop: 8,
-}
-
-const scrollStyle = {
-  maxHeight: 200,
-}
-
-const featureItemStyle = {
-  flexDirection: 'row',
-  alignItems: 'center',
-  padding: 8,
-  backgroundColor: '#f1f5f9',
-  borderRadius: 8,
-  marginBottom: 8,
-}
-
-const featureIconStyle = {
-  fontSize: 20,
-  marginRight: 12,
-}
-
-const featureTextStyle = {
-  fontSize: 14,
-  color: '#475569',
-  flex: 1,
-}
-
-const inputStyle = {
-  borderWidth: 1,
-  borderColor: '#d1d5db',
-  borderRadius: 8,
-  padding: 12,
-  fontSize: 16,
-  backgroundColor: 'white',
-  marginBottom: 8,
-}
 </script>
+
+<style scoped>
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
+}
+
+.section {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.counter-display {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 16px 0;
+  color: #FFE082;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.btn-primary {
+  background: rgba(59, 130, 246, 0.8);
+  color: white;
+}
+
+.btn-secondary {
+  background: rgba(139, 92, 246, 0.8);
+  color: white;
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.text {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 8px 0;
+}
+
+.features-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+}
+
+.feature-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.feature-status {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  margin-bottom: 12px;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(255, 224, 130, 0.6);
+  box-shadow: 0 0 0 3px rgba(255, 224, 130, 0.2);
+}
+
+.performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.perf-item {
+  text-align: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.perf-label {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.perf-value {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FFE082;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .container {
+    padding: 16px;
+  }
+  
+  .section {
+    padding: 20px;
+  }
+  
+  .button-row {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+</style>

@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "spruce dev",
-    "build": "spruce build",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "spruce:dev": "spruce dev",
+    "spruce:build": "spruce build",
     "run:ios": "spruce run --platform ios",
     "run:android": "spruce run --platform android",
     "doctor": "spruce doctor"
@@ -16,6 +19,8 @@
     "@vue/runtime-dom": "3.6.0-beta.7"
   },
   "devDependencies": {
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@vitejs/plugin-vue": "^4.6.0",
+    "vite": "^5.4.0"
   }
 }

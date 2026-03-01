@@ -2,7 +2,6 @@
 members = [
     "core",
     "runtime", 
-    "cli",
     "spruce_cli"
 ]
 resolver = "2"
