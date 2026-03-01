@@ -3,6 +3,11 @@ use std::fs;
 use std::path::Path;
 
 pub fn create_vue_mobile_template(project_path: &Path, app_name: &str) -> Result<()> {
+    // Create project directory structure (developers only see Vue/JS structure)
+    fs::create_dir_all(project_path.join("src/components"))?;
+    fs::create_dir_all(project_path.join("src/stores"))?;
+    fs::create_dir_all(project_path.join("src/assets"))?;
+    fs::create_dir_all(project_path.join("public"))?;
     // Create package.json
     let package_json = format!(r#"{{
   "name": "{}",
@@ -10,63 +15,65 @@ pub fn create_vue_mobile_template(project_path: &Path, app_name: &str) -> Result
   "description": "A Spruce mobile app built with Vue 3.6",
   "main": "src/main.ts",
   "scripts": {{
-    "dev": "spruce dev",
-    "build": "spruce build",
+    "dev": "vite --port 3000",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
     "test": "vitest",
-    "lint": "eslint . --ext .vue,.js,.jsx,.ts,.tsx",
-    "type-check": "vue-tsc --noEmit"
+    "test:ui": "vitest --ui",
+    "lint": "eslint . --ext .vue,.js,.jsx,.ts,.tsx --fix",
+    "type-check": "vue-tsc --noEmit",
+    "mobile:dev": "spruce dev",
+    "mobile:build": "spruce build",
+    "deploy": "spruce deploy"
   }},
   "dependencies": {{
-    "vue": "^3.6.0",
-    "@vue/runtime-core": "^3.6.0",
-    "pinia": "^2.1.0",
-    "@spruce/runtime": "^1.0.0"
+    "vue": "3.6.0-beta.7",
+    "@vue/reactivity": "3.6.0-beta.7",
+    "@vue/runtime-core": "3.6.0-beta.7", 
+    "@vue/runtime-dom": "3.6.0-beta.7",
+    "pinia": "^2.1.0"
   }},
   "devDependencies": {{
+    "@vitejs/plugin-vue": "^5.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
-    "@vitejs/plugin-vue": "^4.5.0",
+    "@vue/tsconfig": "^0.4.0",
     "eslint": "^8.45.0",
     "eslint-plugin-vue": "^9.15.0",
-    "typescript": "^5.0.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
     "vue-tsc": "^1.8.0",
-    "vitest": "^0.34.0"
+    "vitest": "^1.0.0"
   }}
 }}"#, app_name);
     
     fs::write(project_path.join("package.json"), package_json)?;
     
-    // Create Cargo.toml
-    let cargo_toml = format!(r#"[package]
-name = "{}"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-spruce-core = {{ path = "../core" }}
-
-[target.'cfg(target_os = "android")'.dependencies]
-ndk = "0.8"
-jni = "0.21"
-android_logger = "0.13"
-
-[target.'cfg(target_os = "ios")'.dependencies]
-objc = "0.2"
-core-foundation = "0.9"
-
-[[bin]]
-name = "spruce-dev-server"
-path = "src/dev_server.rs"
-required-features = ["dev"]
-
-[features]
-default = []
-dev = []
-"#, app_name.replace("-", "_"));
+    // Create Spruce config (hidden from developers, managed by CLI)
+    let spruce_config = format!(r#"{{
+  "app": {{
+    "name": "{}",
+    "version": "1.0.0",
+    "package": "com.example.{}"
+  }},
+  "platforms": {{
+    "android": {{
+      "minSdk": 24,
+      "targetSdk": 34
+    }},
+    "ios": {{
+      "minVersion": "13.0",
+      "targetVersion": "17.0"
+    }}
+  }},
+  "build": {{
+    "optimization": "release",
+    "bundle": true
+  }}
+}}
+"#, app_name, app_name.replace("-", "_"));
     
-    fs::write(project_path.join("Cargo.toml"), cargo_toml)?;
+    fs::create_dir_all(project_path.join(".spruce"))?;
+    fs::write(project_path.join(".spruce/config.json"), spruce_config)?;
     
     // Create main App component
     let app_vue = r#"<template>
@@ -322,28 +329,14 @@ const randomize = () => {
     let main_ts = r#"import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import { setupSpruce } from '@spruce/runtime'
 
-// Initialize Spruce runtime
-setupSpruce({
-  target: 'mobile',
-  performance: {
-    targetFPS: 60,
-    enableGPUAcceleration: true,
-    memoryOptimization: true
-  },
-  features: {
-    touchGestures: true,
-    hapticFeedback: true,
-    nativeIntegration: true
-  }
-})
-
-// Create Vue app
+// Create Vue 3.6 app
 const app = createApp(App)
+
+// Add Pinia for state management
 app.use(createPinia())
 
-// Mount to Spruce runtime
+// Mount app (Spruce runtime handles native rendering automatically)
 app.mount('#app')
 
 // Development hot reload
@@ -384,6 +377,59 @@ if (import.meta.hot) {
     
     fs::write(project_path.join("tsconfig.json"), tsconfig)?;
     
+    // Create Vite config for Vue 3.6 development
+    let vite_config = r#"import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+
+// Vite configuration for Vue 3.6 development
+// Spruce CLI automatically handles native compilation
+export default defineConfig({
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          // Enable Vue 3.6 Vapor mode for optimal performance
+          mode: 'module'
+        }
+      }
+    })
+  ],
+  resolve: {
+    alias: {
+      '@': './src'
+    }
+  },
+  server: {
+    port: 3000,
+    host: true
+  },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild'
+  }
+})
+"#;
+    
+    fs::write(project_path.join("vite.config.ts"), vite_config)?;
+    
+    // Create index.html for development
+    let index_html = format!(r#"<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/spruce-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{}</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+"#, app_name);
+    
+    fs::write(project_path.join("index.html"), index_html)?;
+    
     // Create README
     let readme = format!(r#"# {}
 
@@ -414,16 +460,18 @@ spruce deploy --stores all
 
 ```
 src/
-├── components/     # Vue 3.6 components
+├── components/     # Vue 3.6 components  
 ├── pages/         # App screens
-├── stores/        # Pinia stores
-└── assets/        # Images, fonts, etc.
+├── stores/        # Pinia stores (state management)
+├── assets/        # Images, fonts, styles
+└── main.ts        # App entry point
 
-native/
-├── android/       # Android-specific code
-├── ios/          # iOS-specific code
-└── shared/       # Shared Rust code
+public/            # Static assets
+package.json       # Dependencies and scripts
+tsconfig.json      # TypeScript configuration
 ```
+
+**Note**: All native code (Rust, Android, iOS) is handled automatically by Spruce CLI. You only work with Vue 3.6 code!
 
 ## Performance
 

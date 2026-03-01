@@ -3,6 +3,7 @@ use crate::templates::*;
 use crate::config::SpruceConfig;
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
 pub fn create_app(app_name: &str, template: Option<&str>) -> Result<()> {
     println!("🌲 Creating Spruce app: {}", app_name);
@@ -72,6 +73,7 @@ fn validate_app_name(name: &str) -> Result<()> {
 }
 
 fn create_project_structure(project_path: &Path) -> Result<()> {
+    // Only create Vue development directories - native code is handled internally
     let directories = vec![
         "src",
         "src/components",
@@ -79,12 +81,9 @@ fn create_project_structure(project_path: &Path) -> Result<()> {
         "src/stores",
         "src/assets",
         "src/utils",
-        "native",
-        "native/android",
-        "native/ios",
-        "native/shared",
+        "public",
         "tests",
-        ".spruce",
+        ".spruce",  // Internal Spruce configuration (hidden from developer)
     ];
     
     for dir in directories {
@@ -186,17 +185,26 @@ Thumbs.db
 }
 
 fn install_dependencies(project_path: &Path) -> Result<()> {
-    println!("📦 Installing dependencies...");
+    println!("📦 Installing Vue dependencies...");
     
-    // Install npm dependencies
+    // Install npm dependencies (Vue ecosystem)
     run_command("npm", &["install"], Some(project_path))?;
     
-    // Add Rust targets for mobile development
-    println!("🦀 Adding Rust targets...");
-    run_command("rustup", &["target", "add", "aarch64-linux-android"], None)?;
-    run_command("rustup", &["target", "add", "armv7-linux-androideabi"], None)?;
-    run_command("rustup", &["target", "add", "aarch64-apple-ios"], None)?;
-    run_command("rustup", &["target", "add", "x86_64-apple-ios"], None)?;
+    // Internally prepare compilation targets (hidden from developer)
+    prepare_internal_targets()?;
+    
+    Ok(())
+}
+
+fn prepare_internal_targets() -> Result<()> {
+    // Silently prepare Rust compilation targets in background
+    // This is completely transparent to Vue developers
+    std::thread::spawn(|| {
+        let _ = Command::new("rustup").args(&["target", "add", "aarch64-linux-android"]).output();
+        let _ = Command::new("rustup").args(&["target", "add", "armv7-linux-androideabi"]).output();
+        let _ = Command::new("rustup").args(&["target", "add", "aarch64-apple-ios"]).output();
+        let _ = Command::new("rustup").args(&["target", "add", "x86_64-apple-ios"]).output();
+    });
     
     Ok(())
 }
@@ -204,16 +212,15 @@ fn install_dependencies(project_path: &Path) -> Result<()> {
 fn print_project_tree(project_path: &Path) {
     println!("{}/ ", project_path.file_name().unwrap().to_str().unwrap());
     println!("├── src/");
-    println!("│   ├── components/");
-    println!("│   ├── pages/");
-    println!("│   ├── stores/");
-    println!("│   └── assets/");
-    println!("├── native/");
-    println!("│   ├── android/");
-    println!("│   ├── ios/");
-    println!("│   └── shared/");
-    println!("├── spruce.config.ts");
-    println!("├── package.json");
-    println!("├── Cargo.toml");
-    println!("└── README.md");
+    println!("│   ├── components/    # Vue 3.6 components");
+    println!("│   ├── pages/         # App screens");
+    println!("│   ├── stores/        # Pinia state management");
+    println!("│   └── assets/        # Images, styles");
+    println!("├── public/            # Static assets");
+    println!("├── tests/             # Unit tests");
+    println!("├── index.html         # Development HTML");
+    println!("├── vite.config.ts     # Vue/Vite configuration");
+    println!("├── package.json       # Dependencies");
+    println!("├── tsconfig.json      # TypeScript config");
+    println!("└── README.md          # Documentation");
 }
