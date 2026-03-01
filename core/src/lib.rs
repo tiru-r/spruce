@@ -16,6 +16,10 @@ pub mod platform;
 /// Pure Rust UI System (replaces native UI for better performance)
 pub mod rust_ui;
 
+/// Android implementation with pure Rust UI
+#[cfg(target_os = "android")]
+pub mod android;
+
 /// SpruceVM - Custom ultra-fast JavaScript engine
 pub mod sprucevm;
 

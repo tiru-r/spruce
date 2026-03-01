@@ -243,6 +243,35 @@ impl RustUIRenderer {
             vapor_bridge: VaporBridge::new(),
         })
     }
+
+    /// Initialize Android surface for pure Rust rendering
+    #[cfg(target_os = "android")]
+    pub fn init_android_surface(&mut self, width: u32, height: u32) -> Result<()> {
+        tracing::info!("🎨 Initializing Rust UI for Android surface {}x{}", width, height);
+        // Initialize painter with Android-specific context
+        self.painter = RustPainter::new_android(width, height)?;
+        Ok(())
+    }
+
+    /// Render frame to Android surface
+    #[cfg(target_os = "android")]
+    pub fn render_android_frame(&mut self, _surface: &crate::android::surface::AndroidSurface) -> Result<()> {
+        self.render_frame()
+    }
+
+    /// Mount component with Android optimizations
+    #[cfg(target_os = "android")]
+    pub fn mount_component(&mut self, component: RustComponent) -> Result<()> {
+        self.root_component = Some(Arc::new(component));
+        
+        // Perform initial layout
+        self.layout_engine.calculate_layout(&self.root_component)?;
+        
+        // Generate GPU vertices for rendering
+        self.painter.generate_vertices(&self.root_component, &self.layout_engine)?;
+        
+        Ok(())
+    }
     
     /// Mount Vue 3.6 component as pure Rust UI
     pub fn mount_vapor_component(&mut self, vue_component: &crate::sprucevm::vue36_complete::Vue36Component) -> Result<()> {
@@ -373,6 +402,17 @@ impl RustPainter {
             shaders: HashMap::new(),
         })
     }
+
+    /// Create painter optimized for Android
+    #[cfg(target_os = "android")]
+    fn new_android(width: u32, height: u32) -> Result<Self> {
+        tracing::debug!("🎨 Creating Android-optimized painter {}x{}", width, height);
+        Ok(Self {
+            vertex_buffer: Vec::with_capacity(10000), // Pre-allocate for mobile
+            text_atlas: TextAtlas::new_android()?,
+            shaders: HashMap::new(),
+        })
+    }
     
     fn generate_vertices(&mut self, component: &Option<Arc<RustComponent>>, layout_engine: &LayoutEngine) -> Result<()> {
         self.vertex_buffer.clear();
@@ -450,6 +490,15 @@ impl TextAtlas {
         Ok(Self {
             texture_id: 1,
             glyph_cache: HashMap::new(),
+        })
+    }
+
+    /// Create text atlas optimized for Android
+    #[cfg(target_os = "android")]
+    fn new_android() -> Result<Self> {
+        Ok(Self {
+            texture_id: 1,
+            glyph_cache: HashMap::with_capacity(512), // Pre-allocate for mobile
         })
     }
 }
