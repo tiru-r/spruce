@@ -200,14 +200,15 @@ pub struct SurfaceLock<'a> {
 
 impl<'a> SurfaceLock<'a> {
     /// Get mutable access to pixel buffer
-    pub fn get_buffer(&mut self) -> Option<&mut Vec<u32>> {
+    pub fn get_buffer(&mut self) -> Option<*mut u32> {
         if self.locked {
-            self.surface.software_buffer.as_ref().map(|_| {
-                // In real implementation, would return locked buffer from ANativeWindow
-                // For now, return None as we can't get mutable reference to buffer
-                // This would be handled differently with proper ANativeWindow integration
-                unimplemented!("Direct buffer access requires ANativeWindow integration")
-            })
+            // In a real implementation, this would return the locked buffer from ANativeWindow
+            // For now, we'll simulate by returning a pointer to our software buffer
+            if let Some(ref buffer) = self.surface.software_buffer {
+                Some(buffer.as_ptr() as *mut u32)
+            } else {
+                None
+            }
         } else {
             None
         }
