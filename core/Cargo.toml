@@ -3,6 +3,10 @@ name = "spruce-core"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "spruce_core"
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 # Workspace dependencies
 tokio = { workspace = true }

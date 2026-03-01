@@ -17,6 +17,7 @@ use std::collections::HashMap;
 pub mod surface;
 pub mod input;
 pub mod jni_bridge;
+pub mod jni_interface;
 pub mod lifecycle;
 pub mod renderer;
 
@@ -265,7 +266,7 @@ impl AndroidApplication {
 }
 
 /// Android device information
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct AndroidDeviceInfo {
     pub manufacturer: String,
     pub model: String,

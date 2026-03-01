@@ -1,0 +1,106 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.spruce.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.spruce.app"
+        minSdk 26  // Android 8.0 for modern native features
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+        
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+        
+        externalNativeBuild {
+            cmake {
+                cppFlags '-std=c++17'
+                arguments '-DANDROID_STL=c++_shared'
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
+            signingConfig null
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.10.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// Task to build Rust native libraries before Android build
+tasks.register('buildRustLibraries') {
+    description 'Build Rust libraries for Android targets'
+    group 'rust'
+    
+    doLast {
+        exec {
+            workingDir '../../'
+            commandLine 'cargo', 'build', '--target', 'aarch64-linux-android', '--release', '--package', 'spruce-core'
+        }
+        exec {
+            workingDir '../../'
+            commandLine 'cargo', 'build', '--target', 'armv7-linux-androideabi', '--release', '--package', 'spruce-core'
+        }
+        
+        // Copy libraries to Android jniLibs
+        copy {
+            from '../../target/aarch64-linux-android/release/'
+            into 'src/main/jniLibs/arm64-v8a/'
+            include 'libspruce_core.so'
+        }
+        copy {
+            from '../../target/armv7-linux-androideabi/release/'
+            into 'src/main/jniLibs/armeabi-v7a/'
+            include 'libspruce_core.so'
+        }
+    }
+}
+
+// Make sure Rust libraries are built before APK assembly
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('assemble') || task.name.contains('bundle')) {
+        task.dependsOn buildRustLibraries
+    }
+}
