@@ -1,258 +1,327 @@
 # Spruce 🌲
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0--preview-orange.svg)](#current-status)
+[![Version](https://img.shields.io/badge/version-0.1.0--experimental-orange.svg)](#current-status)
 [![Build](https://img.shields.io/badge/build-compiles-green.svg)](#architecture)
 
-**Spruce** is an experimental mobile development platform that aims to combine Vue 3.6 Vapor Mode with pure Rust UI rendering. This project represents innovative architecture research for high-performance mobile development using Vue.js.
+**Spruce** is an experimental research project exploring next-generation mobile development through the combination of Vue 3.6 Vapor Mode with Pure Rust UI rendering. While the full vision is still under development, Spruce currently provides excellent Vue 3.6 development tooling and project scaffolding.
 
-[Introduction](#why-spruce) • [Architecture](#architecture) • [Current Status](#current-status) • [CLI Framework](#spruce-cli) • [Quick Start](#quick-start) • [Community](#community--contributing)
+[Quick Start](#quick-start) • [What Works Today](#what-works-today) • [Architecture Vision](#architecture-vision) • [Development Environment](#development-environment) • [Research Goals](#research-goals) • [Community](#community)
 
 ---
 
-## Why Spruce?
+## What Works Today ✅
 
-Modern mobile development faces performance bottlenecks from JavaScript bridge overhead, Virtual DOM reconciliation, and native UI limitations. Even standard business applications can suffer from frame drops and sluggish interactions.
+### **Vue 3.6 Development Tooling**
+Spruce provides a professional CLI and development environment for Vue 3.6 applications:
 
-Spruce explores a revolutionary approach by designing an architecture that combines **Vue 3.6 Vapor Mode** with **pure Rust UI rendering**. Our research focuses on:
+- **🎯 Vue 3.6.0-beta.7 Project Scaffolding** - Generate modern Vue apps with latest beta features
+- **⚡ Professional Templates** - Mobile-optimized Vue applications with TypeScript
+- **🛠️ Complete Dev Environment** - Vite + Vue + TypeScript + Hot Reload
+- **📱 Mobile-First Design** - Responsive templates ready for mobile deployment
+- **🏗️ Clean Architecture** - Well-structured project templates following Vue best practices
 
-- **Zero Virtual DOM**: Vue 3.6 Vapor Mode compiles templates directly to optimized bytecode
-- **Pure Rust UI**: Custom rendering engine designed to bypass native bridge bottlenecks  
-- **Alien Signals**: Advanced reactivity system with zero-allocation signal updates
-- **60+ FPS Target**: Architecture designed for consistent performance under any load
-
-Spruce isn't just another mobile framework—it's architectural research into the future of mobile development platforms.
-
-## Architecture
-
-### Multi-Threaded Design Concept
-
-Spruce is designed around a high-concurrency, tri-threaded model to keep UI performance optimal:
-
-```rust
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   UI Thread     │◄──►│ SpruceVM Thread  │◄──►│ Background Pool │
-│   (Rust UI)     │    │ (Bytecode Engine)│    │   (Async I/O)   │
-│                 │    │                  │    │                 │
-│ • GPU Vertices  │    │ • Vapor Bytecode │    │ • Network I/O   │
-│ • Flex Layout   │    │ • alien-signals  │    │ • File System   │
-│ • SIMD Colors   │    │ • Register VM    │    │ • Image Decode  │
-│ • Zero Bridge   │    │ • JIT Ready      │    │ • Background Ops│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-        │                        │                        │
-        └────────────────────────┼────────────────────────┘
-                                 │
-        ┌─────────────────────────▼─────────────────────────┐
-        │        🚀 PURE RUST UI RENDERER 🚀                │
-        │   Vue Template → Optimized Bytecode → GPU         │
-        │ • Designed for 3x Faster Performance              │
-        │ • Zero-Copy Shared Memory Architecture            │
-        │ • Direct GPU Vertex Buffer Design                 │
-        └──────────────────────────────────────────────────┘
-```
-
-## Current Status (v0.1.0-preview)
-
-### ✅ **What's Implemented**
-
-#### **Architecture & Type Systems**
-- Complete Rust workspace with professional build configuration
-- Comprehensive type system for Vue 3.6 Vapor Mode integration
-- Detailed interfaces for Pure Rust UI rendering
-- Multi-threaded architecture design with proper concurrency patterns
-
-#### **CLI Framework**
-- Working command-line interface with project scaffolding
-- Vue project templates with proper Vue 3.6.0-beta.7 dependencies
-- Build and deployment command structure
-- Professional CLI user experience
-
-#### **Build System**
-- Clean compilation with zero errors
-- Multiple optimization profiles for different targets
-- Workspace-shared dependencies and configurations
-- Platform-specific build targeting
-
-#### **Documentation**
-- Comprehensive architecture documentation
-- Implementation guides and examples
-- Professional project structure
-
-### 🚧 **In Active Development**
-
-#### **Core Engine Implementation**
-- **SpruceVM JavaScript Engine**: Type definitions complete, execution engine in progress
-- **Vue 3.6 Compilation Pipeline**: Interface designed, implementation started
-- **Pure Rust UI Rendering**: Architecture complete, GPU integration in progress
-- **Android Platform**: JNI bridge structured, ANativeWindow integration in progress
-
-#### **Development Tools**
-- **Hot Reload System**: Command structure ready, file watching in progress
-- **Performance Profiling**: Benchmarking framework designed
-- **Visual Development Tools**: Architecture planned
-
-### 📋 **Planned Features**
-- **iOS Platform**: Complete iOS implementation with Metal rendering
-- **Desktop Platforms**: Native Windows, macOS, and Linux support
-- **Web Platform**: WebAssembly compilation target
-- **Visual Development Environment**: Spruce Studio IDE
-- **Plugin Ecosystem**: Third-party plugin architecture
-
-## Spruce CLI
-
-The CLI provides a foundation for the complete development experience:
-
-### **Project Management**
+### **Working CLI Commands**
 ```bash
-# Create a new Spruce project (templates in development)
-spruce create MyApp --template vue-mobile
+# ✅ These commands work today:
+spruce create MyApp           # Creates Vue 3.6 project with TypeScript
+spruce create --template shopping-app
+spruce create --template vue-mobile
 
-# Development server framework (implementation in progress)
+# 🚧 These exist but are placeholder implementations:
 spruce dev --platform android
+spruce build --release
+spruce deploy
 ```
 
-### **Build System**  
-```bash
-# Build system architecture (backend implementation in progress)
-spruce build --release --platform android
-
-# Deployment framework (implementation planned)
-spruce deploy --target play-store
-```
-
-### **AI-Powered Development** (Planned)
-```bash
-# AI assistance framework (implementation planned)
-spruce ai generate --feature "user authentication"
-spruce ai optimize --component UserList
-```
+### **Functional Demo Application**
+- **Live Vue 3.6 demo** at `/examples/demo-app/` 
+- **Working development server** with `npm run dev`
+- **Full TypeScript support** with proper Vue SFC types
+- **Modern Vue patterns** - Composition API, reactive refs, computed properties
 
 ## Quick Start
 
-### Current Capabilities
+### **Creating a Vue 3.6 Project**
 ```bash
-# Clone and build the project
-git clone https://github.com/sprucedev/spruce
+# Clone and build Spruce CLI
+git clone https://github.com/spruce-platform/spruce
 cd spruce
-
-# Build the CLI (compiles successfully)
 cargo build --release
 
-# Explore the architecture
-cargo doc --open
+# Create a new Vue 3.6 project
+./target/release/spruce create MyApp --template vue-mobile
+cd MyApp
+
+# Install dependencies and start development
+npm install --force  # --force needed for Vue 3.6 beta
+npm run dev          # Opens Vue app at http://localhost:3000
 ```
 
-### Vue 3.6 Template Example
-```vue
+### **Exploring the Demo**
+```bash
+# Run the functional Vue 3.6 demo
+cd examples/demo-app
+npm install --force
+npm run dev          # Opens demo at http://localhost:3000
+```
+
+## Architecture Vision 🏗️
+
+Spruce is researching a revolutionary approach to mobile development by combining:
+
+### **Core Innovation Concepts**
+- **Vue 3.6 Vapor Mode**: Compile-time optimizations eliminating Virtual DOM overhead
+- **Pure Rust UI Rendering**: Direct GPU rendering bypassing JavaScript-to-native bridges
+- **SpruceVM Engine**: Custom JavaScript runtime optimized for mobile performance
+- **Zero-Bridge Architecture**: Eliminate performance bottlenecks from platform communication
+
+### **Target Performance Goals** (Research Targets)
+```
+Category           Current (Web)    Research Target
+─────────────────  ─────────────    ───────────────
+Startup Time       ~1000ms         <20ms (Cold)
+UI Responsiveness   16.67ms/frame   <10ms latency
+Memory Usage        ~50MB baseline   <25MB baseline
+Bundle Size         ~2MB           <5MB compressed
+Touch-to-Paint      ~100ms         <16ms (60fps)
+```
+
+*Note: These are research targets, not current measurements*
+
+### **Designed Architecture** (Not Yet Implemented)
+
+```rust
+┌─────────────────────────────────────────────────┐
+│              🌲 SPRUCE VISION                   │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  Vue 3.6 App  ──→  SpruceVM  ──→  Rust UI      │
+│  (Developer    │   (Custom   │    (Direct      │
+│   Writes)      │    Runtime) │     Rendering)  │
+│                                                 │
+│             ┌─────────────────┐                │
+│             │  Pure Rust UI   │                │
+│             │  • GPU Direct   │                │
+│             │  • SIMD Ops     │                │
+│             │  • Zero Bridge  │                │
+│             └─────────────────┘                │
+│                       │                        │
+│             ┌─────────▼─────────┐              │
+│             │  Native Platform  │              │
+│             │ • Android/iOS     │              │
+│             │ • Direct Surface  │              │
+│             │ • 60+ FPS Target  │              │
+│             └───────────────────┘              │
+└─────────────────────────────────────────────────┘
+```
+
+## Current Status (v0.1.0-experimental)
+
+### ✅ **Implemented and Working**
+- **Vue 3.6 Development Environment**: Full-featured Vue development with latest beta
+- **CLI Project Scaffolding**: Professional Vue project generation with TypeScript
+- **Build System Architecture**: Comprehensive Cargo workspace with clean compilation
+- **Template System**: High-quality Vue application templates
+- **Demo Application**: Functional Vue 3.6 app demonstrating modern patterns
+- **TypeScript Integration**: Complete Vue SFC support with proper type definitions
+
+### 🚧 **Designed but Not Implemented**
+- **SpruceVM JavaScript Engine**: Architecture defined, runtime not implemented
+- **Pure Rust UI Renderer**: Type systems complete, GPU rendering not functional
+- **Android Platform Integration**: JNI bridge designed, ANativeWindow integration incomplete
+- **iOS Platform Support**: Architecture planned, implementation not started
+- **Hot Reload for Native**: Command structure exists, functionality not implemented
+- **Mobile App Building**: CLI commands structured, actual APK/IPA generation missing
+
+### 📋 **Research Areas**
+- **Performance Benchmarking**: Framework for testing, actual measurements needed
+- **Cross-Platform Rendering**: Unified API designed, platform implementations pending
+- **Developer Experience**: Vue-only workflow designed, native integration incomplete
+
+## Development Environment
+
+### **Vue 3.6 Development** (Works Today)
+```bash
+# Create new project
+spruce create MyApp
+
+# Development server with hot reload
+cd MyApp
+npm install --force
+npm run dev              # ✅ Working Vue 3.6 + Vite
+
+# TypeScript checking
+npx tsc --noEmit        # ✅ Full Vue SFC type support
+
+# Production build  
+npm run build           # ✅ Optimized web build
+```
+
+### **Generated Project Structure**
+```
+MyApp/
+├── src/
+│   ├── App.vue          # Vue 3.6 Composition API
+│   ├── main.ts          # TypeScript entry point
+│   └── components/      # Vue components
+├── package.json         # Vue 3.6.0-beta.7 dependencies
+├── tsconfig.json        # Vue + TypeScript config
+├── vite.config.ts       # Modern build setup
+└── spruce.config.ts     # Platform configuration (future use)
+```
+
+## Research Goals 🎯
+
+### **Performance Innovation**
+Spruce explores whether combining Vue's developer experience with Rust's performance can achieve:
+- **Native-level performance** without requiring native development skills
+- **60+ FPS consistently** through direct GPU rendering
+- **Sub-millisecond reactivity** via zero-allocation signal updates
+- **Instant startup** through pre-compiled bytecode
+
+### **Developer Experience**
+- **Vue-only development**: Write only Vue/TypeScript, no platform-specific code
+- **Universal deployment**: Single codebase for iOS, Android, Web, Desktop
+- **Hot reload everywhere**: Instant updates across all platforms during development
+- **Zero configuration**: Working mobile apps without complex native setup
+
+### **Technical Innovation**
+- **Vapor Mode Compilation**: Vue templates → optimized bytecode → direct rendering
+- **Signal-based Reactivity**: Alien signals for zero-allocation state updates
+- **Custom JavaScript VM**: SpruceVM optimized specifically for UI workloads
+- **Direct GPU Access**: Bypass platform UI layers for maximum performance
+
+## Platform Support Roadmap
+
+### **Current Platform Status**
+
+| Platform | CLI Support | Templates | Dev Server | Native Build | Status |
+|----------|-------------|-----------|------------|--------------|---------|
+| **Web**     | ✅ Working | ✅ Working | ✅ Working | ✅ Working  | **Production Ready** |
+| **Android** | 🚧 Designed | 🚧 Designed | 📋 Planned | 📋 Planned | **Architecture Phase** |
+| **iOS**     | 🚧 Designed | 🚧 Designed | 📋 Planned | 📋 Planned | **Architecture Phase** |
+| **Desktop** | 🚧 Designed | 📋 Planned | 📋 Planned | 📋 Planned | **Planning Phase** |
+
+### **Implementation Priorities**
+1. **Phase 1**: Complete Vue 3.6 tooling (✅ Done)
+2. **Phase 2**: Basic Android compilation (🚧 In Progress)
+3. **Phase 3**: SpruceVM runtime implementation (📋 Planned)
+4. **Phase 4**: Pure Rust UI renderer (📋 Planned)
+5. **Phase 5**: iOS platform support (📋 Planned)
+
+## Examples and Templates
+
+### **Available Templates**
+```bash
+# Mobile-first Vue application
+spruce create --template vue-mobile
+
+# E-commerce application
+spruce create --template shopping-app  
+
+# Minimal starting point
+spruce create --template blank
+```
+
+### **Template Features**
+- **Vue 3.6.0-beta.7**: Latest Vue with Vapor Mode preparation
+- **TypeScript**: Full type safety and IDE support
+- **Vite**: Modern development server with hot reload
+- **Responsive Design**: Mobile-optimized CSS and layouts
+- **Modern Patterns**: Composition API, reactive refs, computed properties
+- **Performance Ready**: Optimized bundle sizes and loading
+
+## Community & Contributing
+
+### **Current Status**
+Spruce is an **experimental research project** exploring innovative mobile development approaches. While the full vision is under development, the Vue 3.6 development tools are functional and useful today.
+
+### **How to Contribute**
+
+#### **Immediate Opportunities**
+- **Vue Template Enhancement**: Improve the CLI-generated Vue applications
+- **Documentation**: Help clarify current vs planned features
+- **Testing**: Try the Vue development workflow and report issues
+- **Examples**: Create sample applications using Spruce templates
+
+#### **Research Contributions**
+- **Performance Analysis**: Benchmark current Vue vs native performance
+- **Architecture Design**: Contribute to SpruceVM and Rust UI design
+- **Platform Integration**: Help implement Android/iOS compilation
+- **Developer Experience**: Improve the Vue → Native workflow
+
+### **Getting Involved**
+- **Discord**: [Join our community](https://discord.gg/T2rDj6rW) for discussions and support
+- **GitHub Issues**: Report bugs, request features, or ask questions
+- **Documentation**: Help improve guides and examples
+- **Research**: Contribute to performance and architecture research
+
+### **Project Philosophy**
+Spruce believes that mobile development should be:
+- **Accessible**: Vue developers shouldn't need to learn platform-specific languages
+- **Performant**: Apps should achieve native-level performance automatically
+- **Modern**: Development should use the latest web technologies and patterns
+- **Universal**: One codebase should work everywhere without compromise
+
+## Current Limitations ⚠️
+
+### **What Doesn't Work Yet**
+- **Native mobile app building**: CLI commands exist but don't generate APKs/IPAs
+- **Platform deployment**: Deploy commands are placeholder implementations
+- **Performance claims**: Benchmarks are not yet implemented
+- **SpruceVM runtime**: JavaScript execution still uses standard engines
+- **Rust UI rendering**: UI still renders through standard DOM/WebView
+
+### **Vue 3.6 Beta Considerations**
+- **Dependency conflicts**: Requires `npm install --force` for compatibility
+- **Beta stability**: Some Vue 3.6 features may change before final release
+- **Limited ecosystem**: Not all Vue plugins support 3.6 beta yet
+
+## Future Vision 🚀
+
+When complete, Spruce aims to enable:
+
+```typescript
+// Developer writes only Vue 3.6 + TypeScript
 <template>
-  <div class="app">
-    <header class="app-header">
-      <h1 class="app-title">{{ title }}</h1>
-      <p class="counter-display">{{ count }} {{ counterLabel }}</p>
-    </header>
-    <main class="app-main">
-      <button @click="increment" class="counter-btn">+</button>
-      <button @click="decrement" class="counter-btn">-</button>
-    </main>
+  <div class="mobile-app">
+    <TouchableView @tap="handleTap">
+      <Text>Hello Mobile!</Text>
+    </TouchableView>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-
-// Vue 3.6 Vapor Mode ready
-const title = ref('Welcome to Spruce!')
+// Vue Composition API
 const count = ref(0)
-const counterLabel = computed(() => count.value === 1 ? 'tap' : 'taps')
-
-const increment = () => count.value++
-const decrement = () => count.value > 0 && count.value--
+const handleTap = () => count.value++
 </script>
+
+// Compiles to:
+// ✅ Android APK with native performance
+// ✅ iOS IPA with native performance  
+// ✅ Web PWA with standard performance
+// ✅ Desktop app with native performance
 ```
 
-## Platform Support
-
-### **Current Architecture Status**
-
-- 🚧 **Android** (Architecture designed, core implementation in progress)
-- 📋 **iOS** (Architecture planned, implementation pending)
-- 📋 **Desktop** (Design phase)
-- 📋 **Web** (WebAssembly target planned)
-
-### **Android Development Progress**
-- 🚧 Pure Rust UI rendering architecture with ANativeWindow integration
-- 🚧 Touch and gesture recognition system design
-- 🚧 Android lifecycle management framework
-- 🚧 JNI bridges for Java API access
-- 🚧 GPU-accelerated surface rendering design
-- 🚧 Multi-threaded architecture implementation
-
-## Performance Goals
-
-Spruce is being designed with ambitious performance targets:
-
-### **Target Metrics (When Implemented)**
-
-| Category | Metric | Target Performance |
-| :--- | :--- | :--- |
-| **Startup** | First Frame (Cold) | **~20ms** ⚡ |
-| **Reactivity** | Update Latency | **Sub-millisecond** |
-| **Rendering** | Draw Call Overhead | **Zero (Direct GPU)** |
-| **Memory** | Baseline Heap | **<25MB** |
-| **Binary** | Runtime Size | **<5MB** (Compressed) |
-
-*Performance claims will be substantiated with benchmarks once core implementation is complete.*
-
-## Technical Innovation
-
-### **Research Areas**
-- **Zero-Bridge Architecture**: Eliminating JavaScript-to-native communication overhead
-- **Vapor Mode Integration**: Direct compilation of Vue templates to optimized bytecode  
-- **SIMD Optimization**: Leveraging modern CPU instructions for UI calculations
-- **Lock-Free Concurrency**: Multi-threaded rendering without synchronization overhead
-
-### **Key Technical Challenges Being Solved**
-1. **Vue 3.6 to Rust Compilation**: Seamlessly translating Vue components to native UI
-2. **Cross-Platform GPU Rendering**: Unified rendering API across mobile platforms
-3. **Hot Reload for Hybrid Stack**: Live updates for Vue + Rust development
-4. **Zero-Copy Communication**: Efficient data sharing between threads and runtimes
-
-## Community & Contributing
-
-Spruce is an open-source research project exploring the future of mobile development. We welcome contributors interested in:
-
-### **Research Areas**
-- **JavaScript Engine Development**: SpruceVM bytecode optimization
-- **Graphics Programming**: Direct GPU rendering implementation
-- **Vue.js Integration**: Vapor Mode compilation pipeline
-- **Mobile Platform Development**: Android/iOS native integration
-- **Developer Tools**: CLI and development server implementation
-
-### **How to Contribute**
-1. **Explore the Architecture**: Read through the comprehensive type systems and interfaces
-2. **Implement Core Features**: Help bring the designed architecture to life
-3. **Performance Research**: Contribute to benchmarking and optimization
-4. **Documentation**: Improve guides and examples
-
-### **Getting Started**
-1. **Explore the Codebase**: Check out the well-structured Rust modules
-2. **Join Discussions**: [Discord community](https://discord.gg/T2rDj6rW)
-3. **Implementation Work**: Help implement the designed architecture
-4. **Research Contributions**: Contribute to performance and architecture research
-
-## Project Vision
-
-Spruce represents a bold vision for the future of mobile development:
-- **Developer Experience**: Vue developers should write only Vue code
-- **Performance**: Native-level performance without platform complexity
-- **Innovation**: Push the boundaries of what's possible with modern tooling
-
-The project combines cutting-edge research in JavaScript engines, graphics programming, and mobile platform development to create something genuinely new in the mobile development space.
-
-## License
-
-Spruce is released under the **MIT License**. Built with ❤️ for research into the future of mobile development.
+All from a single Vue codebase, with native performance on every platform.
 
 ---
 
-**Spruce** - *Exploring the future of high-performance mobile development.*
+## License
+
+Spruce is released under the **MIT License**. 
+
+**Spruce** - *Exploring the future of mobile development through Vue + Rust innovation.*
+
+---
+
+### Acknowledgments
+
+This project explores innovative combinations of:
+- **Vue 3.6 Vapor Mode** - Compile-time optimizations from the Vue team
+- **Rust Performance** - Memory safety and speed for mobile applications
+- **Modern Development** - TypeScript, Vite, and contemporary web tooling
+
+Built with curiosity about the future of cross-platform mobile development. 🌲
