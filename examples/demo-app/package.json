@@ -1,0 +1,21 @@
+{
+  "name": "vue-rust-ui-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "spruce dev",
+    "build": "spruce build",
+    "run:ios": "spruce run --platform ios",
+    "run:android": "spruce run --platform android",
+    "doctor": "spruce doctor"
+  },
+  "dependencies": {
+    "vue": "^3.6.0",
+    "@vue/reactivity": "^3.6.0",
+    "@vue/runtime-core": "^3.6.0",
+    "@vue/runtime-dom": "^3.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

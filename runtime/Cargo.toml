@@ -1,0 +1,19 @@
+[package]
+name = "spruce-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+spruce-core = { path = "../core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# SpruceVM JavaScript engine integration
+napi = { version = "2.14", features = ["tokio_rt", "napi4"] }
+napi-derive = "2.14"
+
+[build-dependencies]
+napi-build = "2.1"

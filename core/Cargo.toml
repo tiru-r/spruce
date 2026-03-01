@@ -1,0 +1,38 @@
+[package]
+name = "spruce-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+crossbeam = { workspace = true }
+parking_lot = { workspace = true }
+bincode = "1.3"
+lz4_flex = "0.11"
+
+# SpruceVM JavaScript engine integration (custom implementation)
+
+# UI and Graphics
+skia-safe = { version = "0.66", optional = true }
+lyon = "1.0"
+
+# Platform-specific
+[target.'cfg(target_os = "android")'.dependencies]
+ndk = { workspace = true }
+jni = { workspace = true }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+objc = { workspace = true }
+cocoa = { workspace = true }
+core-foundation = { workspace = true }
+
+[features]
+default = ["skia"]
+skia = ["skia-safe"]
+metal = []
+vulkan = []
