@@ -4,11 +4,14 @@ members = [
     "runtime", 
     "spruce_cli"
 ]
+exclude = [
+    # Don't build CLI for Android - only core library is needed
+]
 resolver = "2"
 
 [workspace.dependencies]
 # Core runtime
-tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "net", "process", "signal"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros", "fs", "net", "process", "signal", "sync"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
@@ -37,11 +40,11 @@ regex = "1.10"
 uuid = { version = "1.6", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 toml = "0.8"
-git2 = "0.18"
+git2 = { version = "0.18", default-features = false, features = ["https"] }
 colored = "2.0"
 
 # Optional network
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
 
 # Native platform bindings
 ndk = "0.8"
@@ -50,6 +53,7 @@ objc = "0.2"
 cocoa = "0.25"
 core-foundation = "0.9"
 android_logger = "0.13"
+log = "0.4"
 base64 = "0.21"
 
 # Graphics and UI

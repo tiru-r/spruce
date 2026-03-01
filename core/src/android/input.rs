@@ -7,8 +7,9 @@ use anyhow::Result;
 use std::sync::{Arc, Mutex, atomic::{AtomicU32, Ordering}};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use base64::Engine;
 
-use crate::sprucevm::vue36_vapor::{VaporRuntime, VaporScheduler};
+use crate::sprucevm::vue36_vapor::VaporRuntime;
 
 /// Android input event types
 #[derive(Debug, Clone)]
@@ -60,7 +61,7 @@ pub enum TouchAction {
     PointerUp = 6,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Serialize)]
 pub enum KeyAction {
     Down = 0,
     Up = 1,
@@ -148,12 +149,23 @@ struct FlingDetector {
 }
 
 /// Input processing performance metrics
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct InputMetrics {
     events_processed: u64,
     average_latency_us: f32,
     gesture_recognition_time_us: f32,
     last_reset: Instant,
+}
+
+impl Default for InputMetrics {
+    fn default() -> Self {
+        Self {
+            events_processed: 0,
+            average_latency_us: 0.0,
+            gesture_recognition_time_us: 0.0,
+            last_reset: Instant::now(),
+        }
+    }
 }
 
 /// Recognized gesture types
@@ -394,7 +406,7 @@ impl AndroidInputHandler {
 
         let generic_event = VueGenericEvent {
             event_type,
-            data: base64::encode(&data),
+            data: base64::engine::general_purpose::STANDARD.encode(&data),
         };
 
         self.trigger_vue_event("generic", serde_json::to_value(generic_event)?, vapor_runtime)?;
@@ -466,10 +478,11 @@ impl AndroidInputHandler {
         let event_signal = vapor_runtime.create_signal(event_data);
 
         // Trigger effects that depend on this event type
+        let event_name_owned = event_name.to_string();
         vapor_runtime.scheduler.create_effect(move || {
             let _event_value = event_signal.get();
             // This would trigger Vue event handlers
-            tracing::trace!("🎯 Vue event triggered: {}", event_name);
+            tracing::trace!("🎯 Vue event triggered: {}", event_name_owned);
         });
 
         vapor_runtime.scheduler.flush_effects();

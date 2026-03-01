@@ -5,10 +5,10 @@
 /// performance optimizations.
 
 use anyhow::Result;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::collections::HashMap;
 
-use crate::rust_ui::{RustUIRenderer, RustComponent, LayoutEngine, RustPainter};
+use crate::rust_ui::{RustUIRenderer, RustComponent};
 use crate::android::surface::{AndroidSurface, SurfaceFormat};
 
 /// Android-optimized UI renderer
@@ -194,6 +194,7 @@ struct AndroidRenderProfiler {
 }
 
 #[derive(Debug, Default)]
+#[derive(Clone)]
 struct CPUBreakdown {
     layout_time: f64,
     render_time: f64,
@@ -227,6 +228,7 @@ struct TextureRegion {
 }
 
 /// Android frame buffer for composition
+#[derive(Clone)]
 struct AndroidFrameBuffer {
     /// Frame buffer object ID
     fbo_id: u32,
@@ -275,7 +277,7 @@ impl AndroidUIRenderer {
     }
 
     /// Initialize GPU context with EGL
-    fn init_gpu_context(&mut self, width: u32, height: u32) -> Result<()> {
+    fn init_gpu_context(&mut self, _width: u32, _height: u32) -> Result<()> {
         // In real implementation, this would:
         // 1. Create EGL display
         // 2. Initialize EGL
@@ -332,8 +334,8 @@ impl AndroidUIRenderer {
         self.profiler.begin_frame();
 
         // Render to frame buffer first
-        if let Some(ref fb) = self.frame_buffer {
-            self.render_to_framebuffer(fb)?;
+        if let Some(fb) = self.frame_buffer.clone() {
+            self.render_to_framebuffer(&fb)?;
         }
 
         // Compose to surface
@@ -374,7 +376,7 @@ impl AndroidUIRenderer {
         let optimized_component = self.optimize_for_mobile(component)?;
 
         // Mount using base renderer
-        self.base_renderer.mount_vapor_component(&optimized_component)?;
+        self.base_renderer.mount_component(optimized_component)?;
 
         Ok(())
     }

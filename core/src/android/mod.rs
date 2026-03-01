@@ -113,8 +113,8 @@ impl AndroidApplication {
             let surface = self.surface.clone();
             let ui_renderer = self.ui_renderer.clone();
             let vapor_runtime = self.vapor_runtime.clone();
-            let frame_count = self.frame_count.clone();
-            let is_rendering = self.is_rendering.clone();
+            let frame_count = Arc::new(AtomicU32::new(0));
+            let is_rendering = Arc::new(AtomicBool::new(true));
 
             move || {
                 let mut last_frame_time = std::time::Instant::now();
@@ -329,7 +329,7 @@ pub fn get_android_app() -> Arc<AndroidApplication> {
 /// Initialize Android application (called from JNI)
 #[no_mangle]
 pub extern "C" fn spruce_android_init() -> bool {
-    android_logger::init_once(android_logger::Config::default().with_min_level(log::Level::Debug));
+    android_logger::init_once(android_logger::Config::default().with_max_level(log::LevelFilter::Debug));
     
     tracing::info!("🤖 Spruce Android initialized with pure Rust UI");
     let _app = get_android_app();

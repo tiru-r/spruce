@@ -4,7 +4,7 @@
 /// for zero-overhead surface rendering bypassing the Java UI layer.
 
 use anyhow::Result;
-use std::sync::{Arc, Mutex};
+// Surface doesn't need sync primitives in this implementation
 
 /// Android native surface wrapper for Rust rendering
 pub struct AndroidSurface {
@@ -134,8 +134,8 @@ impl AndroidSurface {
     }
 
     /// Clear the surface with specified color
-    pub fn clear(&self, color: u32) -> Result<()> {
-        if let Some(ref mut buffer) = self.software_buffer.as_ref() {
+    pub fn clear(&mut self, color: u32) -> Result<()> {
+        if let Some(ref mut buffer) = self.software_buffer.as_mut() {
             // Clear software buffer
             for pixel in buffer.iter_mut() {
                 *pixel = color;
@@ -215,7 +215,7 @@ impl<'a> SurfaceLock<'a> {
     }
 
     /// Draw pixel at coordinates
-    pub fn draw_pixel(&mut self, x: u32, y: u32, color: u32) -> Result<()> {
+    pub fn draw_pixel(&mut self, x: u32, y: u32, _color: u32) -> Result<()> {
         if !self.locked {
             return Err(anyhow::anyhow!("Surface not locked"));
         }

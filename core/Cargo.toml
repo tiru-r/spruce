@@ -20,11 +20,12 @@ lz4_flex = { workspace = true }
 skia-safe = { workspace = true, optional = true }
 lyon = { workspace = true }
 
-# Platform-specific
+# Platform-specific - disable git2 on Android to avoid OpenSSL
 [target.'cfg(target_os = "android")'.dependencies]
 ndk = { workspace = true }
 jni = { workspace = true }
 android_logger = { workspace = true }
+log = { workspace = true }
 base64 = { workspace = true }
 
 [target.'cfg(target_os = "ios")'.dependencies]

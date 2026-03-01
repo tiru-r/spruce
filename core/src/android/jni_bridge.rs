@@ -4,7 +4,7 @@
 /// Handles device info, system calls, and Android-specific functionality.
 
 use anyhow::Result;
-use jni::objects::{JClass, JObject, JString, JValue};
+use jni::objects::{JClass, JString, JValue};
 use jni::{JNIEnv, JavaVM};
 use std::sync::{Arc, Mutex, Once};
 use std::collections::HashMap;
@@ -15,6 +15,8 @@ pub struct AndroidJNIBridge {
     jvm: Option<Arc<JavaVM>>,
     /// JNI method cache for performance
     method_cache: Arc<Mutex<HashMap<String, jni::objects::JMethodID>>>,
+    /// Static method cache  
+    static_method_cache: Arc<Mutex<HashMap<String, jni::objects::JStaticMethodID>>>,
     /// Class cache
     class_cache: Arc<Mutex<HashMap<String, jni::objects::GlobalRef>>>,
 }
@@ -43,6 +45,7 @@ impl AndroidJNIBridge {
         Self {
             jvm: None,
             method_cache: Arc::new(Mutex::new(HashMap::new())),
+            static_method_cache: Arc::new(Mutex::new(HashMap::new())),
             class_cache: Arc::new(Mutex::new(HashMap::new())),
         }
     }
@@ -62,7 +65,7 @@ impl AndroidJNIBridge {
     /// Cache commonly used Java classes for performance
     fn cache_common_classes(&self) -> Result<()> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             let mut cache = self.class_cache.lock().unwrap();
 
             // Cache Build class for device info
@@ -99,20 +102,19 @@ impl AndroidJNIBridge {
 
     /// Get Android version string (e.g., "11", "12")
     pub fn get_android_version(&self) -> Result<String> {
-        self.get_build_field("VERSION", "RELEASE")
+        self.get_build_field("RELEASE")
     }
 
     /// Get Android API level
     pub fn get_api_level(&self) -> Result<i32> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             
             let build_version_class = env.find_class("android/os/Build$VERSION")?;
-            let sdk_int_field = env.get_static_field_id(build_version_class, "SDK_INT", "I")?;
-            let api_level = env.get_static_field(build_version_class, sdk_int_field, "I")?;
+            let api_level = env.get_static_field(build_version_class, "SDK_INT", "I")?;
 
             match api_level {
-                JValue::Int(level) => Ok(level),
+                jni::objects::JValueGen::Int(level) => Ok(level),
                 _ => Err(anyhow::anyhow!("Failed to get API level")),
             }
         } else {
@@ -123,7 +125,7 @@ impl AndroidJNIBridge {
     /// Get screen density
     pub fn get_screen_density(&self) -> Result<f32> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let _env = jvm.attach_current_thread()?;
             
             // This is simplified - in real implementation you'd get the actual DisplayMetrics
             // from the Activity or WindowManager
@@ -143,11 +145,11 @@ impl AndroidJNIBridge {
     /// Get total device memory in bytes
     pub fn get_total_memory(&self) -> Result<i64> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             
             // Get ActivityManager.MemoryInfo
-            let activity_manager_class = env.find_class("android/app/ActivityManager")?;
-            let memory_info_class = env.find_class("android/app/ActivityManager$MemoryInfo")?;
+            let _activity_manager_class = env.find_class("android/app/ActivityManager")?;
+            let _memory_info_class = env.find_class("android/app/ActivityManager$MemoryInfo")?;
             
             // This is simplified - you'd need the actual ActivityManager instance
             Ok(8 * 1024 * 1024 * 1024) // Default 8GB
@@ -176,12 +178,12 @@ impl AndroidJNIBridge {
     }
 
     /// Vibrate device
-    pub fn vibrate(&self, duration_ms: u64) -> Result<()> {
+    pub fn vibrate(&self, _duration_ms: u64) -> Result<()> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let _env = jvm.attach_current_thread()?;
             
             // Get Vibrator service (simplified)
-            tracing::debug!("📳 Vibrating for {}ms", duration_ms);
+            tracing::debug!("📳 Vibrating for {}ms", _duration_ms);
             
             // In real implementation:
             // 1. Get Context
@@ -214,29 +216,30 @@ impl AndroidJNIBridge {
     /// Get system property
     pub fn get_system_property(&self, key: &str) -> Result<String> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             
             let system_class = env.find_class("java/lang/System")?;
-            let get_property_method = env.get_static_method_id(
-                system_class,
+            let _get_property_method = env.get_static_method_id(
+                &system_class,
                 "getProperty",
                 "(Ljava/lang/String;)Ljava/lang/String;"
             )?;
             
             let key_jstring = env.new_string(key)?;
             let result = env.call_static_method(
-                system_class,
-                get_property_method,
-                &[JValue::Object(key_jstring.into())]
+                &system_class,
+                "getProperty",
+                "(Ljava/lang/String;)Ljava/lang/String;",
+                &[JValue::Object(&key_jstring)]
             )?;
             
             match result {
-                JValue::Object(obj) => {
+                jni::objects::JValueGen::Object(obj) => {
                     if obj.is_null() {
                         Ok("".to_string())
                     } else {
                         let jstring: JString = obj.into();
-                        let rust_string = env.get_string(jstring)?;
+                        let rust_string = env.get_string(&jstring)?;
                         Ok(rust_string.into())
                     }
                 }
@@ -271,7 +274,7 @@ impl AndroidJNIBridge {
 
     fn get_build_field_nested(&self, class_suffix: &str, field_name: &str) -> Result<String> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             
             let class_name = if class_suffix.is_empty() {
                 "android/os/Build"
@@ -280,16 +283,16 @@ impl AndroidJNIBridge {
             };
             
             let build_class = env.find_class(class_name)?;
-            let field_id = env.get_static_field_id(build_class, field_name, "Ljava/lang/String;")?;
-            let field_value = env.get_static_field(build_class, field_id, "Ljava/lang/String;")?;
+            let _field_id = env.get_static_field_id(&build_class, field_name, "Ljava/lang/String;")?;
+            let field_value = env.get_static_field(&build_class, field_name, "Ljava/lang/String;")?;
             
             match field_value {
-                JValue::Object(obj) => {
+                jni::objects::JValueGen::Object(obj) => {
                     if obj.is_null() {
                         Ok("Unknown".to_string())
                     } else {
                         let jstring: JString = obj.into();
-                        let rust_string = env.get_string(jstring)?;
+                        let rust_string = env.get_string(&jstring)?;
                         Ok(rust_string.into())
                     }
                 }
@@ -307,13 +310,13 @@ impl AndroidJNIBridge {
         method_name: &str,
         method_signature: &str,
         args: &[JValue],
-    ) -> Result<JValue> {
+    ) -> Result<String> {
         if let Some(ref jvm) = self.jvm {
-            let env = jvm.attach_current_thread()?;
+            let mut env = jvm.attach_current_thread()?;
             
-            // Check method cache
+            // Check static method cache
             let cache_key = format!("{}::{}", class_name, method_name);
-            let mut cache = self.method_cache.lock().unwrap();
+            let mut cache = self.static_method_cache.lock().unwrap();
             
             let method_id = if let Some(cached_id) = cache.get(&cache_key) {
                 *cached_id
@@ -327,7 +330,24 @@ impl AndroidJNIBridge {
             drop(cache); // Release lock
             
             let class = env.find_class(class_name)?;
-            env.call_static_method_unchecked(class, method_id, args)
+            match env.call_static_method(class, method_name, method_signature, args) {
+                Ok(result) => {
+                    // Convert result to string for simplicity
+                    match result {
+                        jni::objects::JValueGen::Object(obj) => {
+                            if obj.is_null() {
+                                Ok("".to_string())
+                            } else {
+                                let jstring: jni::objects::JString = obj.into();
+                                let rust_string = env.get_string(&jstring)?;
+                                Ok(rust_string.into())
+                            }
+                        }
+                        _ => Ok("Non-string result".to_string()),
+                    }
+                },
+                Err(e) => Err(anyhow::anyhow!("JNI call failed: {}", e))
+            }
         } else {
             Err(anyhow::anyhow!("JVM not initialized"))
         }
@@ -355,12 +375,12 @@ pub fn get_jni_bridge() -> &'static mut AndroidJNIBridge {
 
 /// JNI functions called from Java
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_initJNI(
-    env: JNIEnv,
-    _class: JClass,
+pub extern "C" fn Java_com_spruce_SpruceNative_initJNI<'local>(
+    env: JNIEnv<'local>,
+    _class: JClass<'local>,
 ) -> bool {
     // Initialize logging
-    android_logger::init_once(android_logger::Config::default().with_min_level(log::Level::Debug));
+    android_logger::init_once(android_logger::Config::default().with_max_level(log::LevelFilter::Debug));
     
     tracing::info!("🚀 Initializing Spruce JNI bridge");
     
@@ -385,10 +405,10 @@ pub extern "C" fn Java_com_spruce_SpruceNative_initJNI(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_getDeviceInfo(
-    env: JNIEnv,
-    _class: JClass,
-) -> JString {
+pub extern "C" fn Java_com_spruce_SpruceNative_getDeviceInfo<'local>(
+    env: JNIEnv<'local>,
+    _class: JClass<'local>,
+) -> JString<'local> {
     let bridge = get_jni_bridge();
     
     match bridge.get_system_info() {
@@ -404,9 +424,9 @@ pub extern "C" fn Java_com_spruce_SpruceNative_getDeviceInfo(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_vibrate(
-    _env: JNIEnv,
-    _class: JClass,
+pub extern "C" fn Java_com_spruce_SpruceNative_vibrate<'local>(
+    _env: JNIEnv<'local>,
+    _class: JClass<'local>,
     duration: i64,
 ) -> bool {
     let bridge = get_jni_bridge();
@@ -421,9 +441,9 @@ pub extern "C" fn Java_com_spruce_SpruceNative_vibrate(
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_toggleKeyboard(
-    _env: JNIEnv,
-    _class: JClass,
+pub extern "C" fn Java_com_spruce_SpruceNative_toggleKeyboard<'local>(
+    _env: JNIEnv<'local>,
+    _class: JClass<'local>,
     show: bool,
 ) -> bool {
     let bridge = get_jni_bridge();
@@ -439,9 +459,9 @@ pub extern "C" fn Java_com_spruce_SpruceNative_toggleKeyboard(
 
 /// Surface creation JNI binding
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_createSurface(
-    _env: JNIEnv,
-    _class: JClass,
+pub extern "C" fn Java_com_spruce_SpruceNative_createSurface<'local>(
+    _env: JNIEnv<'local>,
+    _class: JClass<'local>,
     surface: jni::sys::jobject,
     width: i32,
     height: i32,
@@ -465,9 +485,9 @@ pub extern "C" fn Java_com_spruce_SpruceNative_createSurface(
 
 /// Input event JNI binding
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onTouchEvent(
-    _env: JNIEnv,
-    _class: JClass,
+pub extern "C" fn Java_com_spruce_SpruceNative_onTouchEvent<'local>(
+    _env: JNIEnv<'local>,
+    _class: JClass<'local>,
     action: i32,
     x: f32,
     y: f32,
@@ -508,37 +528,37 @@ pub extern "C" fn Java_com_spruce_SpruceNative_onTouchEvent(
 
 /// Android lifecycle JNI bindings
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onCreate(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onCreate<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_create();
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onStart(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onStart<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_start();
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onResume(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onResume<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_resume();
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onPause(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onPause<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_pause();
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onStop(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onStop<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_stop();
 }
 
 #[no_mangle]
-pub extern "C" fn Java_com_spruce_SpruceNative_onDestroy(_env: JNIEnv, _class: JClass) {
+pub extern "C" fn Java_com_spruce_SpruceNative_onDestroy<'local>(_env: JNIEnv<'local>, _class: JClass<'local>) {
     let app = crate::android::get_android_app();
     let _ = app.on_destroy();
 }
@@ -578,6 +598,7 @@ mod tests {
         let bridge = AndroidJNIBridge::new();
         assert!(bridge.jvm.is_none());
         assert!(bridge.method_cache.lock().unwrap().is_empty());
+        assert!(bridge.static_method_cache.lock().unwrap().is_empty());
     }
 
     #[test]

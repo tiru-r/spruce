@@ -6,6 +6,7 @@
 /// - CPU-specific optimizations
 /// - Cache-friendly data structures
 use anyhow::Result;
+#[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
 /// SIMD-accelerated operations for common Vue patterns
@@ -84,6 +85,7 @@ impl SIMDOptimizer {
     }
 
     /// Vectorized array addition (common in Vue reactive computations)
+    #[cfg(target_arch = "x86_64")]
     #[target_feature(enable = "avx2")]
     pub unsafe fn add_arrays_avx2(&self, a: &[f64], b: &[f64], result: &mut [f64]) {
         assert_eq!(a.len(), b.len());
@@ -107,6 +109,7 @@ impl SIMDOptimizer {
     }
 
     /// Vectorized array multiplication
+    #[cfg(target_arch = "x86_64")]
     #[target_feature(enable = "avx2")]
     pub unsafe fn mul_arrays_avx2(&self, a: &[f64], b: &[f64], result: &mut [f64]) {
         assert_eq!(a.len(), b.len());
@@ -128,6 +131,7 @@ impl SIMDOptimizer {
     }
 
     /// Ultra-fast string comparison using SIMD
+    #[cfg(target_arch = "x86_64")]
     #[target_feature(enable = "avx2")]
     pub unsafe fn compare_strings_avx2(&self, a: &str, b: &str) -> bool {
         if a.len() != b.len() {
@@ -190,6 +194,7 @@ impl SIMDOptimizer {
     }
 
     /// Memory-optimized object copying
+    #[cfg(target_arch = "x86_64")]
     #[target_feature(enable = "avx2")]
     pub unsafe fn copy_object_avx2(&self, src: *const u8, dst: *mut u8, size: usize) {
         // Use AVX2 for large copies
@@ -427,6 +432,10 @@ fn detect_cpu_features() -> CPUFeatures {
     #[cfg(target_arch = "aarch64")]
     {
         CPUFeatures {
+            has_avx2: false,  // x86_64 only
+            has_avx512: false, // x86_64 only
+            has_fma: false,   // x86_64 only
+            has_sse42: false, // x86_64 only
             has_neon: std::arch::is_aarch64_feature_detected!("neon"),
             cache_line_size: 64, // Typical ARM64
             l1_cache_size: 32 * 1024,
@@ -437,6 +446,10 @@ fn detect_cpu_features() -> CPUFeatures {
     #[cfg(not(any(target_arch = "x86_64", target_arch = "aarch64")))]
     {
         CPUFeatures {
+            has_avx2: false,
+            has_avx512: false,
+            has_fma: false,
+            has_sse42: false,
             cache_line_size: 64,
             l1_cache_size: 32 * 1024,
             l2_cache_size: 256 * 1024,
