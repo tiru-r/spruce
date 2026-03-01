@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/badge/version-0.1.3--alpha-orange.svg)](#roadmap)
 [![Performance](https://img.shields.io/badge/octane-5200+-green.svg)](#performance)
 
-**Spruce** is a performance-first mobile framework designed to unleash the full potential of the Vue ecosystem. By eliminating the Virtual DOM and leveraging a custom Rust-backed bytecode engine, Spruce provides the raw power needed for GPU-intensive applications, games, and physics-driven experiences.
+**Spruce** is a performance-first mobile framework designed to unleash the full potential of the Vue ecosystem. Positioned as the **true React Native alternative for Vue 3**, Spruce provides the raw power and developer experience required for everything from standard business apps to high-performance games and physics engines.
 
 [Introduction](#why-spruce) • [Features](#core-features) • [Architecture](#architecture) • [Benchmarks](#performance) • [Quick Start](#quick-start) • [Community](#community--contributing)
 
@@ -12,9 +12,9 @@
 
 ## Why Spruce?
 
-High-performance applications—from complex data visualizations to mobile games—frequently hit bottlenecks in traditional JavaScript environments. The Virtual DOM, while convenient for standard web apps, introduces reconciliation overhead that throttles main-thread performance and GPU communication.
+High-performance applications—from complex data visualizations to mobile games—frequently hit bottlenecks in traditional JavaScript environments. However, even standard applications can suffer from Virtual DOM overhead and main-thread congestion.
 
-Spruce bridges this gap by adopting a **Vapor-first architecture**.
+Spruce was created to be the **true React Native alternative for Vue 3**. By adopting a **Vapor-first architecture**, Spruce ensures that any application—no matter the scale—benefits from extreme efficiency and absolute responsiveness, bringing the simplicity of Vue to high-performance native development.
 - **VDOM-Free**: Complete elimination of Virtual DOM reconciliation.
 - **Direct Native Execution**: Compiled Vue blueprints → Optimized bytecode → GPU-accelerated Rust UI.
 - **Signal-Powered**: Built on **alien-signals**, the industry's fastest reactive system.
