@@ -13,11 +13,13 @@ tokio = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-clap = { version = "4.4", features = ["derive"] }
-colored = "2.0"
-indicatif = "0.17"
-dialoguer = "0.11"
-walkdir = "2.4"
+thiserror = { workspace = true }
+clap = { workspace = true }
+console = { workspace = true }
+indicatif = { workspace = true }
+dialoguer = { workspace = true }
+walkdir = { workspace = true }
+colored = { workspace = true }
 
 # Template engine
-handlebars = "4.5"
+handlebars = { workspace = true }

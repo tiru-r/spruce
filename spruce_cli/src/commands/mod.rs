@@ -21,6 +21,7 @@ pub enum SpruceError {
     Config(String),
     Build(String),
     Deploy(String),
+    #[allow(dead_code)]
     Network(String),
 }
 

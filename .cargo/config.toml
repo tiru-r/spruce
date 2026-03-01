@@ -1,0 +1,61 @@
+# Spruce Platform - Cargo configuration for optimized builds
+
+# Target-specific optimizations (only when tools are available)
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "target-cpu=native",
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-C", "target-cpu=native",
+]
+
+[target.aarch64-apple-darwin] 
+rustflags = [
+    "-C", "target-cpu=native",
+]
+
+# Android optimizations
+[target.aarch64-linux-android]
+linker = "aarch64-linux-android21-clang"
+rustflags = [
+    "-C", "opt-level=s",           # Optimize for size on mobile
+    "-C", "target-cpu=cortex-a78", # Modern ARM CPU optimization
+    "-C", "lto=fat",
+    "-C", "codegen-units=1",
+]
+
+[target.armv7-linux-androideabi]
+linker = "armv7a-linux-androideabi21-clang"
+rustflags = [
+    "-C", "opt-level=s",
+    "-C", "target-cpu=cortex-a15",
+    "-C", "lto=fat",
+    "-C", "codegen-units=1",
+]
+
+# iOS optimizations
+[target.aarch64-apple-ios]
+rustflags = [
+    "-C", "opt-level=s",
+    "-C", "target-cpu=apple-a14",  # Modern iOS CPU
+    "-C", "lto=fat",
+    "-C", "codegen-units=1",
+]
+
+[target.x86_64-apple-ios]
+rustflags = [
+    "-C", "opt-level=s",
+    "-C", "lto=fat",
+]
+
+# Environment variables for faster builds
+[env]
+# Parallel compilation
+CARGO_BUILD_JOBS = "8"
+# Enable incremental compilation cache
+CARGO_INCREMENTAL = "1"
+# Faster Skia builds (when available)
+SKIA_NINJA_COMMAND = "ninja"
+SKIA_GN_COMMAND = "gn"

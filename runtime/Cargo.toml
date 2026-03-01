@@ -12,8 +12,8 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 
 # SpruceVM JavaScript engine integration
-napi = { version = "2.14", features = ["tokio_rt", "napi4"] }
-napi-derive = "2.14"
+napi = { workspace = true, features = ["tokio_rt", "napi4"] }
+napi-derive = { workspace = true }
 
 [build-dependencies]
 napi-build = "2.1"

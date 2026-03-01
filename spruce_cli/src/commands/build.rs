@@ -231,7 +231,7 @@ fn build_web(release: bool, config: &crate::config::SpruceConfig) -> Result<()> 
     Ok(())
 }
 
-fn compile_vue_for_mobile(config: &crate::config::SpruceConfig) -> Result<()> {
+fn compile_vue_for_mobile(_config: &crate::config::SpruceConfig) -> Result<()> {
     // Compile Vue components to Vapor bytecode for mobile
     println!("⚡ Compiling Vue components with Vapor mode...");
     

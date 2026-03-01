@@ -10,7 +10,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Rust-based UI Component (replaces native UI)
+/// Optimized for high-performance rendering
 #[derive(Debug, Clone)]
+#[repr(C)] // Optimize memory layout for performance
 pub struct RustComponent {
     pub id: u32,
     pub component_type: ComponentType,
@@ -336,6 +338,7 @@ impl RustUIRenderer {
     }
     
     /// Render frame with pure Rust (bypass native UI)
+    #[inline(always)] // Always inline for maximum performance
     pub fn render_frame(&mut self) -> Result<()> {
         if let Some(ref root) = self.root_component {
             // Process Vapor reactivity updates
@@ -360,6 +363,7 @@ impl LayoutEngine {
     }
     
     /// SIMD-optimized layout calculation
+    #[inline(always)]
     fn calculate_layout(&mut self, component: &Option<Arc<RustComponent>>) -> Result<()> {
         if let Some(comp) = component {
             self.calculate_component_layout(comp, 0.0, 0.0, 800.0, 600.0)?;

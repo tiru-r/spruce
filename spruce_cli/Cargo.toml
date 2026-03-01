@@ -15,45 +15,35 @@ name = "spruce"
 path = "src/main.rs"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-clap = { version = "4.4", features = ["derive", "color"] }
-tokio = { version = "1.0", features = ["full"] }
-reqwest = { version = "0.11", features = ["json"], optional = true }
-anyhow = "1.0"
-thiserror = "1.0"
-console = "0.15"
-indicatif = "0.17"
-dialoguer = "0.11"
-tempfile = "3.8"
-walkdir = "2.4"
-ignore = "0.4"
-glob = "0.3"
-regex = "1.10"
-uuid = { version = "1.6", features = ["v4"] }
-chrono = { version = "0.4", features = ["serde"] }
-toml = "0.8"
-git2 = "0.18"
+# Workspace dependencies
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true, optional = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+console = { workspace = true }
+indicatif = { workspace = true }
+dialoguer = { workspace = true }
+tempfile = { workspace = true }
+walkdir = { workspace = true }
+ignore = { workspace = true }
+glob = { workspace = true }
+regex = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+toml = { workspace = true }
+git2 = { workspace = true }
 
 [dev-dependencies]
-assert_cmd = "2.0"
-predicates = "3.0"
-tempdir = "0.3"
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+tempdir = { workspace = true }
 
 [features]
-default = ["reqwest"]
-dev = ["tokio/rt-multi-thread"]
-telemetry = ["reqwest"]
-
-[profile.release]
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
-
-[profile.dev]
-debug = true
-opt-level = 0
+default = []
+telemetry = []
 
 [package.metadata.docs.rs]
 all-features = true
