@@ -1,0 +1,60 @@
+[package]
+name = "spruce-platform-cli"
+version = "1.0.0"
+edition = "2021"
+authors = ["Spruce Team <team@spruce.dev>"]
+description = "Spruce CLI - Next-generation mobile development platform"
+homepage = "https://spruce.dev"
+repository = "https://github.com/spruce-platform/spruce"
+license = "MIT"
+keywords = ["mobile", "vue", "rust", "android", "ios"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "spruce"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+clap = { version = "4.4", features = ["derive", "color"] }
+tokio = { version = "1.0", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"], optional = true }
+anyhow = "1.0"
+thiserror = "1.0"
+console = "0.15"
+indicatif = "0.17"
+dialoguer = "0.11"
+tempfile = "3.8"
+walkdir = "2.4"
+ignore = "0.4"
+glob = "0.3"
+regex = "1.10"
+uuid = { version = "1.6", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+toml = "0.8"
+git2 = "0.18"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.0"
+tempdir = "0.3"
+
+[features]
+default = ["reqwest"]
+dev = ["tokio/rt-multi-thread"]
+telemetry = ["reqwest"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+debug = true
+opt-level = 0
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
