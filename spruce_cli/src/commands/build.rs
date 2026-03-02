@@ -117,16 +117,54 @@ fn compile_for_android_internal(release: bool, config: &crate::config::SpruceCon
     Ok(())
 }
 
-fn create_android_package_internal(config: &crate::config::SpruceConfig) -> Result<()> {
+fn create_android_package_internal(_config: &crate::config::SpruceConfig) -> Result<()> {
     // Internal APK creation logic
     // This generates the final Android package from Vue build + Rust runtime
+    println!("📦 Creating Android APK package...");
     
-    // Create dist directory
+    // Check Android SDK prerequisites
+    check_android_sdk()?;
+    
+    // Create Android project structure if it doesn't exist
+    let android_dir = Path::new("android");
+    if !android_dir.exists() {
+        println!("🏗️ Creating Android project structure...");
+        create_android_project_structure()?;
+    }
+    
+    // Build Rust library for Android
+    println!("🦀 Building Rust library for Android targets...");
+    build_rust_for_android()?;
+    
+    // Copy Rust libraries to Android project
+    copy_android_libraries(false)?;
+    
+    // Build Vue app and copy to Android assets
+    println!("⚡ Building Vue app for Android...");
+    build_vue_for_android()?;
+    
+    // Build APK using Gradle
+    println!("🤖 Building APK with Gradle...");
+    run_command("./gradlew", &["assembleDebug"], Some(android_dir))?;
+    
+    // Copy APK to dist folder
     let dist_dir = Path::new("dist");
     ensure_directory(dist_dir)?;
     
-    // Copy built Vue app to final package location  
-    copy_vue_build_to_package()?;
+    let apk_source = android_dir.join("app/build/outputs/apk/debug/app-debug.apk");
+    let apk_dest = dist_dir.join("app-debug.apk");
+    
+    if apk_source.exists() {
+        fs::copy(&apk_source, &apk_dest)?;
+        println!("✅ APK created successfully: {}", apk_dest.display());
+        
+        // Print APK info
+        if let Ok(metadata) = fs::metadata(&apk_dest) {
+            println!("📊 APK size: {:.2} MB", metadata.len() as f64 / 1024.0 / 1024.0);
+        }
+    } else {
+        return Err(SpruceError::Build("APK build failed - output file not found".to_string()));
+    }
     
     Ok(())
 }
@@ -330,55 +368,11 @@ dependencies {{
     fs::write(android_dir.join("app/build.gradle"), build_gradle)?;
     
     // Create MainActivity.kt
-    create_android_main_activity(android_dir, config)?;
+    create_android_main_activity()?;
     
     Ok(())
 }
 
-fn create_android_main_activity(android_dir: &Path, config: &crate::config::SpruceConfig) -> Result<()> {
-    let main_activity = format!(r#"
-package {}
-
-import android.app.Activity
-import android.os.Bundle
-import android.view.SurfaceView
-
-class MainActivity : Activity() {{
-    
-    companion object {{
-        init {{
-            System.loadLibrary("spruce")
-        }}
-    }}
-    
-    private external fun initRust(): Boolean
-    private external fun createSurface(surface: android.view.Surface, width: Int, height: Int): Boolean
-    
-    override fun onCreate(savedInstanceState: Bundle?) {{
-        super.onCreate(savedInstanceState)
-        
-        initRust()
-        
-        val surfaceView = SurfaceView(this)
-        setContentView(surfaceView)
-        
-        surfaceView.holder.addCallback(object : android.view.SurfaceHolder.Callback {{
-            override fun surfaceCreated(holder: android.view.SurfaceHolder) {{
-                createSurface(holder.surface, surfaceView.width, surfaceView.height)
-            }}
-            override fun surfaceDestroyed(holder: android.view.SurfaceHolder) {{}}
-            override fun surfaceChanged(holder: android.view.SurfaceHolder, format: Int, width: Int, height: Int) {{}}
-        }})
-    }}
-}}
-"#, config.app.package);
-    
-    let activity_dir = android_dir.join("app/src/main/java").join(config.app.package.replace(".", "/"));
-    ensure_directory(&activity_dir)?;
-    fs::write(activity_dir.join("MainActivity.kt"), main_activity)?;
-    
-    Ok(())
-}
 
 fn create_ios_project(_config: &crate::config::SpruceConfig, _ios_config: &crate::config::IosConfig) -> Result<()> {
     // Create iOS project structure
@@ -391,20 +385,259 @@ fn create_ios_project(_config: &crate::config::SpruceConfig, _ios_config: &crate
     Ok(())
 }
 
-fn copy_android_libraries(release: bool) -> Result<()> {
-    let build_type = if release { "release" } else { "debug" };
+fn copy_android_libraries(_release: bool) -> Result<()> {
+    println!("📚 Copying Rust libraries to Android project...");
     
-    // Copy ARM64 library
-    let src_arm64 = Path::new("target/aarch64-linux-android").join(build_type).join("libspruce.so");
-    let dest_arm64 = Path::new("android/app/src/main/jniLibs/arm64-v8a/libspruce.so");
-    ensure_directory(dest_arm64.parent().unwrap())?;
-    fs::copy(src_arm64, dest_arm64)?;
+    let target_dir = Path::new("target");
     
-    // Copy ARM7 library
-    let src_arm7 = Path::new("target/armv7-linux-androideabi").join(build_type).join("libspruce.so");
-    let dest_arm7 = Path::new("android/app/src/main/jniLibs/armeabi-v7a/libspruce.so");
-    ensure_directory(dest_arm7.parent().unwrap())?;
-    fs::copy(src_arm7, dest_arm7)?;
+    // Android ABI architectures to support  
+    let android_abis = vec![
+        ("aarch64-linux-android", "arm64-v8a"),
+        ("armv7-linux-androideabi", "armeabi-v7a"),
+    ];
+    
+    for (target, abi) in android_abis {
+        let lib_path = target_dir.join(target).join("debug").join("libspruce_core.so");
+        
+        if lib_path.exists() {
+            let jni_lib_dir = Path::new("android/app/src/main/jniLibs").join(abi);
+            ensure_directory(&jni_lib_dir)?;
+            
+            let dest_path = jni_lib_dir.join("libspruce.so");
+            fs::copy(&lib_path, &dest_path)?;
+            println!("  ✅ Copied {} -> {}", lib_path.display(), dest_path.display());
+        } else {
+            println!("  ⚠️ Library not found for {}: {}", target, lib_path.display());
+            println!("     Run: cargo build --target {}", target);
+        }
+    }
+    
+    Ok(())
+}
+
+fn create_android_project_structure() -> Result<()> {
+    println!("🏗️ Creating Android project structure...");
+    
+    // Create Android project directories
+    let dirs = vec![
+        "android",
+        "android/app",
+        "android/app/src",
+        "android/app/src/main",
+        "android/app/src/main/java/com/spruce/app",
+        "android/app/src/main/assets",
+        "android/app/src/main/jniLibs",
+        "android/app/src/main/res",
+        "android/app/src/main/res/values",
+        "android/app/src/main/res/layout",
+    ];
+    
+    for dir in dirs {
+        ensure_directory(Path::new(dir))?;
+    }
+    
+    // Create basic Android files
+    create_android_manifest()?;
+    create_android_build_gradle()?;
+    create_android_main_activity()?;
+    create_gradle_wrapper()?;
+    
+    println!("✅ Android project structure created");
+    Ok(())
+}
+
+fn create_android_manifest() -> Result<()> {
+    let manifest = r#"<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.spruce.app">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Spruce App"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>"#;
+
+    fs::write("android/app/src/main/AndroidManifest.xml", manifest)?;
+    Ok(())
+}
+
+fn create_android_build_gradle() -> Result<()> {
+    // Create app-level build.gradle
+    let app_gradle = r#"plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.spruce.app"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
+}"#;
+
+    fs::write("android/app/build.gradle", app_gradle)?;
+
+    // Create root-level build.gradle  
+    let root_gradle = r#"buildscript {
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}"#;
+
+    fs::write("android/build.gradle", root_gradle)?;
+
+    // Create gradle.properties
+    let gradle_props = r#"android.useAndroidX=true
+android.enableJetifier=true
+org.gradle.jvmargs=-Xmx2048M"#;
+
+    fs::write("android/gradle.properties", gradle_props)?;
+    
+    Ok(())
+}
+
+fn create_android_main_activity() -> Result<()> {
+    let main_activity = r#"package com.spruce.app
+
+import android.app.Activity
+import android.os.Bundle
+import android.view.SurfaceView
+import android.view.SurfaceHolder
+
+class MainActivity : Activity() {
+    
+    companion object {
+        init {
+            System.loadLibrary("spruce")
+        }
+    }
+    
+    private external fun initRust(): Boolean
+    private external fun createSurface(surface: android.view.Surface, width: Int, height: Int): Boolean
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        initRust()
+        
+        val surfaceView = SurfaceView(this)
+        setContentView(surfaceView)
+        
+        surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
+            override fun surfaceCreated(holder: SurfaceHolder) {
+                createSurface(holder.surface, surfaceView.width, surfaceView.height)
+            }
+            override fun surfaceDestroyed(holder: SurfaceHolder) {}
+            override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
+        })
+    }
+}"#;
+
+    fs::write("android/app/src/main/java/com/spruce/app/MainActivity.kt", main_activity)?;
+    Ok(())
+}
+
+fn create_gradle_wrapper() -> Result<()> {
+    // Create gradlew script
+    let gradlew = r#"#!/usr/bin/env bash
+./gradlew "$@"
+"#;
+    fs::write("android/gradlew", gradlew)?;
+    
+    // Make gradlew executable
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata("android/gradlew")?.permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions("android/gradlew", perms)?;
+    }
+    
+    Ok(())
+}
+
+fn build_rust_for_android() -> Result<()> {
+    println!("🦀 Building Rust library for Android...");
+    
+    // Check if Android targets are installed
+    run_command("rustup", &["target", "add", "aarch64-linux-android"], None)?;
+    run_command("rustup", &["target", "add", "armv7-linux-androideabi"], None)?;
+    
+    // Build for Android targets
+    println!("🔧 Building for ARM64...");
+    run_command("cargo", &["build", "--target", "aarch64-linux-android"], None)?;
+    
+    println!("🔧 Building for ARM7...");
+    run_command("cargo", &["build", "--target", "armv7-linux-androideabi"], None)?;
+    
+    Ok(())
+}
+
+fn build_vue_for_android() -> Result<()> {
+    println!("⚡ Building Vue app for Android...");
+    
+    // Build Vue app
+    run_command("npm", &["run", "build"], None)?;
+    
+    // Copy Vue build output to Android assets
+    let dist_dir = Path::new("dist");
+    let assets_dir = Path::new("android/app/src/main/assets");
+    
+    if dist_dir.exists() {
+        copy_directory(dist_dir, assets_dir)?;
+        println!("✅ Vue app copied to Android assets");
+    }
     
     Ok(())
 }
